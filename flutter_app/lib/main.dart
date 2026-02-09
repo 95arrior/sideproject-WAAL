@@ -136,7 +136,7 @@ class _WaalAppState extends State<WaalApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'WAAL',
+      title: '왈 – 반려견 유치원 예약·소통 앱',
       debugShowCheckedModeBanner: false, // 디버그 배너 숨김
       theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
       home: _splashComplete
