@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import Icons from "./Icons";
 
 interface PageHeaderProps {
   title?: string;
@@ -9,36 +8,30 @@ interface PageHeaderProps {
   onBack?: () => void;
 }
 
-export default function PageHeader({
-  title,
-  variant = "back",
-  onBack,
-}: PageHeaderProps) {
+export default function PageHeader({ title, variant = "back", onBack }: PageHeaderProps) {
   const router = useRouter();
   const handleGoBack = onBack || (() => router.back());
 
   return (
-    <div
-      className={`relative flex items-center pt-10 sm:pt-[45px] ${
-        title ? "justify-center" : ""
-      }`}
-    >
+    <div className={`relative flex items-center pt-14 ${title ? "justify-center" : ""}`}>
       <button
         onClick={handleGoBack}
-        className={`p-3 sm:p-[18px] w-12 h-12 sm:w-[57px] sm:h-[57px] flex items-center justify-center -ml-3 sm:-ml-[18px] ${
+        className={`w-10 h-10 flex items-center justify-center rounded-full active:bg-[#f5f6fa] transition-colors -ml-2 ${
           title ? "absolute left-0" : ""
         }`}
       >
         {variant === "close" ? (
-          <Icons.Close className="w-4 h-4 sm:w-[17px] sm:h-[17px] text-gray-900" />
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M18 6L6 18M6 6L18 18" stroke="#191f28" strokeWidth="2" strokeLinecap="round" />
+          </svg>
         ) : (
-          <Icons.Prev className="w-5 h-5 sm:w-[26px] sm:h-[22px]" />
+          <svg width="10" height="18" viewBox="0 0 10 18" fill="none">
+            <path d="M9 1L1 9L9 17" stroke="#191f28" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         )}
       </button>
       {title && (
-        <h1 className="text-lg sm:text-xl font-bold text-gray-900 leading-7 sm:leading-[30px]">
-          {title}
-        </h1>
+        <h1 className="text-[18px] font-bold text-[#191f28]">{title}</h1>
       )}
     </div>
   );
