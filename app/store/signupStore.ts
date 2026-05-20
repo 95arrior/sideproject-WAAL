@@ -43,6 +43,16 @@ export interface SignupData {
   petImageKey: string;
   petImageUrl: string;
   regionCode: string;
+  // Academy features
+  allowSmall: boolean;
+  smallMaxKg: number;
+  allowMedium: boolean;
+  mediumMaxKg: number;
+  allowLarge: boolean;
+  largeMaxKg: number;
+  hasShuttle: boolean;
+  allowShy: boolean;
+  hasClass: boolean;
   // Onboarding status
   isAcademyOnboardingCompleted: boolean;
   isParentOnboardingCompleted: boolean;
@@ -63,6 +73,12 @@ interface SignupStore {
   updateTermsSelectOption: (terms: Partial<TermsSelectOption>) => void;
   updateSignupData: (data: Partial<SignupData>) => void;
   resetSignupData: () => void;
+
+  // Academy features actions
+  updateAcademyFeatures: (features: Partial<Pick<SignupData,
+    "allowSmall" | "smallMaxKg" | "allowMedium" | "mediumMaxKg" |
+    "allowLarge" | "largeMaxKg" | "hasShuttle" | "allowShy" | "hasClass"
+  >>) => void;
 
   // Academy signup actions
   updateAcademyName: (academyName: string) => void;
@@ -113,6 +129,16 @@ const initialSignupData: SignupData = {
     payment: false,
     marketing: false,
   },
+  // Academy features
+  allowSmall: false,
+  smallMaxKg: 0,
+  allowMedium: false,
+  mediumMaxKg: 0,
+  allowLarge: false,
+  largeMaxKg: 0,
+  hasShuttle: false,
+  allowShy: false,
+  hasClass: false,
   // Academy signup data
   academyName: "",
   academyAddress: "",
@@ -213,6 +239,12 @@ export const useSignupStore = create<SignupStore>()((set, get) => ({
     set({
       signupData: initialSignupData,
     }),
+
+  // Academy features action
+  updateAcademyFeatures: (features) =>
+    set((state) => ({
+      signupData: { ...state.signupData, ...features },
+    })),
 
   // Academy signup actions
   updateAcademyName: (academyName) =>

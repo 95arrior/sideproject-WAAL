@@ -62,7 +62,7 @@ export default function AcademyCapacityPage() {
       return;
     }
 
-    router.push("/signup/academy/picture");
+    router.push("/signup/academy/features");
   };
 
   const isFormValid = capacity !== "" && parseInt(capacity) > 0;

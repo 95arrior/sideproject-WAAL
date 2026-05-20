@@ -79,21 +79,29 @@ export default function AcademyPicturePage() {
       const uploadResult = await uploadFile(selectedFile);
       updateImageKey(uploadResult.s3Key);
 
-      // 2. 회원가입 API 호출
+      // 2. 유치원 등록 API 호출
       const academySignupData = {
-        academyName: signupData.academyName,
-        academyAddress: signupData.academyAddress,
-        academyAddressDetail: signupData.academyAddressDetail,
+        name: signupData.academyName,
+        address: signupData.academyAddress,
+        addressDetail: signupData.academyAddressDetail,
         sggCode: signupData.sggCode,
-        academyPhone: signupData.academyPhone,
+        phone: signupData.academyPhone,
         maxCapacity: signupData.maxCapacity,
         scheduleList: signupData.scheduleList,
+        allowSmall: signupData.allowSmall,
+        smallMaxKg: signupData.smallMaxKg,
+        allowMedium: signupData.allowMedium,
+        mediumMaxKg: signupData.mediumMaxKg,
+        allowLarge: signupData.allowLarge,
+        largeMaxKg: signupData.largeMaxKg,
+        hasShuttle: signupData.hasShuttle,
+        allowShy: signupData.allowShy,
+        hasClass: signupData.hasClass,
+        imageUrl: uploadResult.s3Key,
       };
 
-      console.log("회원가입 API 호출:", academySignupData);
-
       const response = await apiClient.post(
-        "/api/v1/members/signup/academy",
+        "/api/v1/kindergartens",
         academySignupData,
         {
           requireAuth: true,
