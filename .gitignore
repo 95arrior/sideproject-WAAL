@@ -41,5 +41,7 @@ yarn-error.log*
 next-env.d.ts
 
 .package-lock.json
+package-lock.json
+pnpm-workspace.yaml
 CLAUDE.md
 .claude/
