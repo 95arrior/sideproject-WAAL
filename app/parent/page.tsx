@@ -10,6 +10,7 @@ import WaitingCard from "../components/WaitingCard";
 import RejectedCard from "../components/RejectedCard";
 import AddPetCard from "../components/AddPetCard";
 import BottomNav from "../components/BottomNav";
+import BottomTabBar from "../components/BottomTabBar";
 
 export default function ParentPage() {
   const router = useRouter();
@@ -175,5 +176,6 @@ export default function ParentPage() {
 
       <BottomNav role="parent" />
     </div>
+    <BottomTabBar />
   );
 }

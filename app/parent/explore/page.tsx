@@ -1,44 +1,79 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import MainContainer from "../../components/MainContainer";
-import BottomNav from "../../components/BottomNav";
-import { apiClient } from "../../utils/api";
+import BottomTabBar from "../../components/BottomTabBar";
 
-interface ScheduleItem {
-  dayOfWeek: string;
-  isOpen: boolean;
-  operatingStartTime: string;
-  operatingEndTime: string;
-}
+// ── 목업 데이터 ──────────────────────────────────────────────
+const MOCK_ACADEMIES = [
+  {
+    id: 1,
+    name: "해피독 유치원",
+    address: "서울시 강남구 테헤란로 123",
+    currentCount: 12,
+    maxCapacity: 20,
+    imageUrl: null,
+    distance: 1.2,
+    allowSmall: true,  smallMaxKg: 10,
+    allowMedium: true, mediumMaxKg: 20,
+    allowLarge: false, largeMaxKg: 0,
+    hasShuttle: true,
+    allowShy: false,
+    hasClass: true,
+  },
+  {
+    id: 2,
+    name: "멍멍 펫스쿨",
+    address: "서울시 서초구 방배로 45",
+    currentCount: 15,
+    maxCapacity: 15,
+    imageUrl: null,
+    distance: 2.5,
+    allowSmall: true,  smallMaxKg: 8,
+    allowMedium: true, mediumMaxKg: 15,
+    allowLarge: false, largeMaxKg: 0,
+    hasShuttle: false,
+    allowShy: true,
+    hasClass: false,
+  },
+  {
+    id: 3,
+    name: "왈왈 유치원",
+    address: "서울시 송파구 올림픽로 88",
+    currentCount: 7,
+    maxCapacity: 15,
+    imageUrl: null,
+    distance: 3.8,
+    allowSmall: false, smallMaxKg: 0,
+    allowMedium: true, mediumMaxKg: 25,
+    allowLarge: true,  largeMaxKg: 45,
+    hasShuttle: true,
+    allowShy: true,
+    hasClass: true,
+  },
+  {
+    id: 4,
+    name: "포근한 강아지 유치원",
+    address: "서울시 마포구 홍대로 22",
+    currentCount: 3,
+    maxCapacity: 10,
+    imageUrl: null,
+    distance: 5.1,
+    allowSmall: true,  smallMaxKg: 10,
+    allowMedium: false, mediumMaxKg: 0,
+    allowLarge: false,  largeMaxKg: 0,
+    hasShuttle: false,
+    allowShy: true,
+    hasClass: true,
+  },
+];
 
-interface Academy {
-  id: number;
-  name: string;
-  address: string;
-  addressDetail: string | null;
-  phone: string | null;
-  description: string | null;
-  imageUrl: string | null;
-  maxCapacity: number;
-  scheduleList: ScheduleItem[] | null;
-  allowSmall: boolean;
-  smallMaxKg: number;
-  allowMedium: boolean;
-  mediumMaxKg: number;
-  allowLarge: boolean;
-  largeMaxKg: number;
-  hasShuttle: boolean;
-  allowShy: boolean;
-  hasClass: boolean;
-  createdAt: string;
-}
-
-type FilterKey = "small" | "medium" | "large" | "shuttle" | "shy" | "hasClass";
-type SortOption = "name" | "capacity";
+type FilterKey = "nearby" | "small" | "medium" | "large" | "shuttle" | "shy" | "hasClass";
+type SortOption = "name" | "capacity" | "distance";
 
 const FILTER_CHIPS: { key: FilterKey; label: string; emoji: string }[] = [
+  { key: "nearby",   label: "내 주변",           emoji: "📍" },
   { key: "small",    label: "소형견",             emoji: "🐩" },
   { key: "medium",   label: "중형견",             emoji: "🐕" },
   { key: "large",    label: "대형견",             emoji: "🦮" },
@@ -50,16 +85,15 @@ const FILTER_CHIPS: { key: FilterKey; label: string; emoji: string }[] = [
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: "name",     label: "이름순" },
   { value: "capacity", label: "정원순" },
+  { value: "distance", label: "거리순" },
 ];
 
 export default function ExplorePage() {
   const router = useRouter();
-  const [academies, setAcademies] = useState<Academy[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<SortOption>("name");
+  const [sortBy, setSortBy] = useState<SortOption>("distance");
   const [filters, setFilters] = useState<Record<FilterKey, boolean>>({
-    small: false, medium: false, large: false,
+    nearby: false, small: false, medium: false, large: false,
     shuttle: false, shy: false, hasClass: false,
   });
 
@@ -67,42 +101,27 @@ export default function ExplorePage() {
     setFilters((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const fetchAcademies = useCallback(async () => {
-    setIsLoading(true);
-    const params = new URLSearchParams();
-    if (searchTerm) params.set("keyword", searchTerm);
-    if (filters.small)    params.set("allowSmall", "true");
-    if (filters.medium)   params.set("allowMedium", "true");
-    if (filters.large)    params.set("allowLarge", "true");
-    if (filters.shuttle)  params.set("hasShuttle", "true");
-    if (filters.shy)      params.set("allowShy", "true");
-    if (filters.hasClass) params.set("hasClass", "true");
-
-    const endpoint = `/api/v1/kindergartens${params.toString() ? `?${params}` : ""}`;
-    const response = await apiClient.get<{ data: Academy[] }>(endpoint, { requireAuth: false });
-
-    if (response.success && response.data) {
-      const list: Academy[] = Array.isArray(response.data)
-        ? response.data
-        : (response.data as any).data ?? [];
-      setAcademies(list);
-    }
-    setIsLoading(false);
-  }, [searchTerm, filters]);
-
-  useEffect(() => {
-    const timer = setTimeout(fetchAcademies, 300);
-    return () => clearTimeout(timer);
-  }, [fetchAcademies]);
-
-  const sorted = [...academies].sort((a, b) => {
-    if (sortBy === "capacity") return b.maxCapacity - a.maxCapacity;
-    return a.name.localeCompare(b.name);
-  });
-
   const activeFilterCount = Object.values(filters).filter(Boolean).length;
 
-  const getTags = (a: Academy) => {
+  const processed = MOCK_ACADEMIES
+    .filter((a) => {
+      if (searchTerm && !a.name.includes(searchTerm) && !a.address.includes(searchTerm)) return false;
+      if (filters.nearby  && a.distance > 5)   return false;
+      if (filters.small   && !a.allowSmall)     return false;
+      if (filters.medium  && !a.allowMedium)    return false;
+      if (filters.large   && !a.allowLarge)     return false;
+      if (filters.shuttle && !a.hasShuttle)     return false;
+      if (filters.shy     && !a.allowShy)       return false;
+      if (filters.hasClass && !a.hasClass)      return false;
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortBy === "distance") return a.distance - b.distance;
+      if (sortBy === "capacity") return (b.maxCapacity - b.currentCount) - (a.maxCapacity - a.currentCount);
+      return a.name.localeCompare(b.name);
+    });
+
+  const getTags = (a: typeof MOCK_ACADEMIES[0]) => {
     const tags: string[] = [];
     if (a.allowSmall)  tags.push(`🐩 소형견 ${a.smallMaxKg}kg`);
     if (a.allowMedium) tags.push(`🐕 중형견 ${a.mediumMaxKg}kg`);
@@ -112,6 +131,8 @@ export default function ExplorePage() {
     if (a.hasClass)    tags.push("📚 교육 수업");
     return tags;
   };
+
+  const formatDist = (km: number) => km < 1 ? `${Math.round(km * 1000)}m` : `${km.toFixed(1)}km`;
 
   return (
     <>
@@ -173,7 +194,7 @@ export default function ExplorePage() {
         {/* 결과 수 */}
         <div className="px-4 sm:px-5 pt-3 pb-1">
           <p className="text-[12px] font-medium text-[#858585]">
-            총 <span className="text-[#3f59ff] font-bold">{sorted.length}</span>개의 유치원
+            총 <span className="text-[#3f59ff] font-bold">{processed.length}</span>개의 유치원
             {activeFilterCount > 0 && (
               <span className="text-[#3f59ff] font-bold"> · 필터 {activeFilterCount}개 적용 중</span>
             )}
@@ -182,24 +203,20 @@ export default function ExplorePage() {
 
         {/* 카드 리스트 */}
         <div className="px-4 sm:px-5 pb-[100px] flex flex-col gap-3 mt-1">
-          {isLoading ? (
-            <div className="flex flex-col items-center py-20 gap-3">
-              <div className="w-8 h-8 border-2 border-[#3f59ff] border-t-transparent rounded-full animate-spin" />
-              <p className="text-[14px] text-[#858585] font-medium">유치원을 불러오는 중...</p>
-            </div>
-          ) : sorted.length === 0 ? (
+          {processed.length === 0 ? (
             <div className="flex flex-col items-center py-20 gap-3">
               <span className="text-5xl">🐾</span>
               <p className="text-[15px] text-[#858585] font-medium">조건에 맞는 유치원이 없어요</p>
               <button
-                onClick={() => setFilters({ small: false, medium: false, large: false, shuttle: false, shy: false, hasClass: false })}
+                onClick={() => setFilters({ nearby: false, small: false, medium: false, large: false, shuttle: false, shy: false, hasClass: false })}
                 className="text-[13px] text-[#3f59ff] font-semibold underline"
               >
                 필터 초기화
               </button>
             </div>
           ) : (
-            sorted.map((academy) => {
+            processed.map((academy) => {
+              const isFull = academy.currentCount >= academy.maxCapacity;
               const tags = getTags(academy);
               return (
                 <button
@@ -209,19 +226,25 @@ export default function ExplorePage() {
                 >
                   <div className="flex gap-3">
                     {/* 이미지 */}
-                    <div className="w-[70px] h-[70px] rounded-[10px] bg-[#e8eaff] flex-shrink-0 flex items-center justify-center text-3xl overflow-hidden">
-                      {academy.imageUrl
-                        ? <img src={academy.imageUrl} alt={academy.name} className="w-full h-full object-cover" />
-                        : "🏫"}
+                    <div className="w-[70px] h-[70px] rounded-[10px] bg-[#e8eaff] flex-shrink-0 flex items-center justify-center text-3xl">
+                      🏫
                     </div>
                     {/* 정보 */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-[3px]">
                         <p className="text-[15px] font-bold text-gray-900 truncate">{academy.name}</p>
+                        <span className={`flex-shrink-0 px-2 py-[2px] rounded-full text-[10px] font-bold ${isFull ? "bg-[#f0f0f0] text-[#858585]" : "bg-[rgba(63,89,255,0.1)] text-[#3f59ff]"}`}>
+                          {isFull ? "마감" : "모집중"}
+                        </span>
                       </div>
-                      <p className="text-[11px] text-[#858585] truncate mb-1">📍 {academy.address}{academy.addressDetail ? ` ${academy.addressDetail}` : ""}</p>
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-[11px] text-[#858585] truncate flex-1">📍 {academy.address}</p>
+                        <span className="text-[11px] font-bold text-[#3f59ff] flex-shrink-0 ml-2">
+                          {formatDist(academy.distance)}
+                        </span>
+                      </div>
                       <p className="text-[11px] text-[#3f59ff] font-semibold mb-2">
-                        최대 {academy.maxCapacity}마리
+                        🐶 {academy.currentCount}/{academy.maxCapacity}마리
                       </p>
                       {/* 태그 */}
                       <div className="flex flex-wrap gap-1">
@@ -244,7 +267,7 @@ export default function ExplorePage() {
           )}
         </div>
       </MainContainer>
-      <BottomNav role="parent" />
+      <BottomTabBar />
     </>
   );
 }

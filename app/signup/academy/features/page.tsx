@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import MainContainer from "../../../components/MainContainer";
 import Icons from "../../../components/Icons";
-import { useSignupStore } from "../../../store/signupStore";
 
 interface FeaturesState {
   allowSmall: boolean;
@@ -79,7 +78,6 @@ function WeightInput({
 
 export default function AcademyFeaturesPage() {
   const router = useRouter();
-  const { updateAcademyFeatures } = useSignupStore();
   const [features, setFeatures] = useState<FeaturesState>({
     allowSmall: false,  smallMaxKg: "",
     allowMedium: false, mediumMaxKg: "",
@@ -104,17 +102,8 @@ export default function AcademyFeaturesPage() {
   const canProceed = isSizeSelected && isSmallValid && isMediumValid && isLargeValid;
 
   const handleNext = () => {
-    updateAcademyFeatures({
-      allowSmall:  features.allowSmall,
-      smallMaxKg:  features.allowSmall  ? Number(features.smallMaxKg)  : 0,
-      allowMedium: features.allowMedium,
-      mediumMaxKg: features.allowMedium ? Number(features.mediumMaxKg) : 0,
-      allowLarge:  features.allowLarge,
-      largeMaxKg:  features.allowLarge  ? Number(features.largeMaxKg)  : 0,
-      hasShuttle:  features.hasShuttle,
-      allowShy:    features.allowShy,
-      hasClass:    features.hasClass,
-    });
+    // TODO: signupStore에 저장 후 이동
+    // updateAcademyFeatures({ ... });
     router.push("/signup/academy/picture");
   };
 
